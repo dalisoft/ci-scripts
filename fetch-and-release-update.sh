@@ -47,7 +47,7 @@ fi
 TAG=$(curl -s "https://api.github.com/repos/${repository}/releases/latest" | grep 'tag_name' | cut -d ':' -f2 | cut -d '_' -f2 | cut -d '/' -f2 | rev | cut -c3- | rev | tr '"' 'v' | xargs)
 echo "Git tag was acqiured"
 
-if git rev-parse "refs/tags/${TAG}" >/dev/null 2>&1; then
+if ! git rev-parse "refs/tags/${TAG}" >/dev/null 2>&1; then
   npm version "$(echo "${TAG}" | tr -d 'v')" -m "Upgrade ${project} to ${TAG}" --sign-git-tag
   echo "Git tag and npm updated"
 
