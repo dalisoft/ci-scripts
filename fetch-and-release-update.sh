@@ -44,7 +44,7 @@ if [ -z "${GPG_NO_SIGN-}" ] && [ -n "${GPG_PASSPHRASE-}" ]; then
   echo "Git GPG passphrase set"
 fi
 
-TAG=$(curl -s "https://api.github.com/repos/${repository}/releases/latest" | grep 'tag_name' | cut -d ':' -f2 | cut -d '_' -f2 | cut -d '/' -f2 | rev | cut -c3- | rev | tr '"' 'v' | xargs)
+TAG=$(curl -s "https://api.github.com/repos/${repository}/releases/latest" | grep 'tag_name' | cut -d ':' -f2 | cut -d '_' -f2 | cut -d '/' -f2 | rev | cut -c3- | rev | tr '"' 'v' | sed "s/vv/v/g" | xargs)
 echo "Git tag was acqiured"
 
 if ! git rev-parse "refs/tags/${TAG}" >/dev/null 2>&1; then
