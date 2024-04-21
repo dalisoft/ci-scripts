@@ -14,11 +14,6 @@ if [ -z "${project-}" ]; then
   exit 1
 fi
 
-if [ -z "${GH_TOKEN-}" ]; then
-  echo "GH_TOKEN not defined, please set it for properly working"
-  exit 1
-fi
-
 if [ -n "${GIT_USERNAME-}" ] && [ -n "${GIT_EMAIL-}" ]; then
   git config --local user.email "$GIT_EMAIL"
   git config --local user.name "$GIT_USERNAME"
@@ -44,7 +39,14 @@ if [ -z "${GPG_NO_SIGN-}" ] && [ -n "${GPG_PASSPHRASE-}" ]; then
   echo "Git GPG passphrase set"
 fi
 
-TAG=$(curl -s "https://api.github.com/repos/${repository}/releases" | grep 'tag_name' | xargs -L1 | cut -d ':' -f2 | xargs -L1 | tr -d ',' | grep -E '^v?[0-9]' | head -1)
+if [ -n "${GH_TOKEN-}" ]; then
+  TAG=$(curl -s -H "Accept: application/vnd.github+json" \
+    -H "Authorization: Bearer ${GH_TOKEN}" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/repos/${repository}/releases" | grep 'tag_name' | xargs -L1 | cut -d ':' -f2 | cut -d '/' -f2 | xargs -L1 | grep -E '^v?[0-9]' | head -1 | tr -d ',')
+else
+  TAG=$(curl -s "https://api.github.com/repos/${repository}/releases" | grep 'tag_name' | xargs -L1 | cut -d ':' -f2 | cut -d '/' -f2 | xargs -L1 | grep -E '^v?[0-9]' | head -1 | tr -d ',')
+fi
 
 echo "Git tag was acqiured"
 
