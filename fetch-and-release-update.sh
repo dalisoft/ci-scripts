@@ -39,15 +39,17 @@ if [ -z "${GPG_NO_SIGN-}" ] && [ -n "${GPG_PASSPHRASE-}" ]; then
   echo "Git GPG passphrase set"
 fi
 
+RELEASES=""
 if [ -n "${GH_TOKEN-}" ]; then
-  TAG=$(curl -s -H "Accept: application/vnd.github+json" \
+  RELEASES=$(curl -s -H "Accept: application/vnd.github+json" \
     -H "Authorization: Bearer ${GH_TOKEN}" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
-    "https://api.github.com/repos/${repository}/releases" | grep 'tag_name' | xargs -L1 | cut -d ':' -f2 | cut -d '/' -f2 | xargs -L1 | grep -E '^v?[0-9]' | head -1 | tr -d ',')
+    "https://api.github.com/repos/${repository}/releases")
 else
-  TAG=$(curl -s "https://api.github.com/repos/${repository}/releases" | grep 'tag_name' | xargs -L1 | cut -d ':' -f2 | cut -d '/' -f2 | xargs -L1 | grep -E '^v?[0-9]' | head -1 | tr -d ',')
+  RELEASES=$(curl -s "https://api.github.com/repos/${repository}/releases")
 fi
 
+TAG=$(echo "${RELEASES}" | grep 'tag_name' | xargs -L1 | cut -d ':' -f2 | cut -d '/' -f2 | xargs -L1 | grep -E '^v?[0-9]' | head -1 | tr -d ',')
 echo "Git tag was acqiured"
 
 if ! git rev-parse "refs/tags/${TAG}" >/dev/null 2>&1; then
