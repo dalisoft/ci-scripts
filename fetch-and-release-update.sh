@@ -1,9 +1,6 @@
 #!/bin/sh
 set -eu
 
-# Global variables
-GNUPGHOME=$(mktemp -d)
-
 if [ -z "${repository-}" ]; then
   echo "Repository not defined, please set it first"
   exit 1
@@ -20,7 +17,7 @@ if [ -n "${GIT_USERNAME-}" ] && [ -n "${GIT_EMAIL-}" ]; then
   echo "Git username [$GIT_USERNAME] and Git e-mail [$GIT_EMAIL] set"
 fi
 if [ -n "${GPG_KEY-}" ]; then
-  echo "$GPG_KEY" | base64 --decode | gpg --homedir "$GNUPGHOME" --quiet --batch --import
+  echo "$GPG_KEY" | base64 --decode | gpg --quiet --batch --import
 fi
 if [ -z "${GPG_NO_SIGN-}" ] && [ -n "${GPG_KEY_ID-}" ]; then
   git config --local commit.gpgsign true
@@ -31,11 +28,7 @@ if [ -z "${GPG_NO_SIGN-}" ] && [ -n "${GPG_KEY_ID-}" ]; then
 fi
 
 if [ -z "${GPG_NO_SIGN-}" ] && [ -n "${GPG_PASSPHRASE-}" ]; then
-  echo "allow-loopback-pinentry" >>"$GNUPGHOME/gpg-agent.conf"
-  echo "pinentry-mode loopback" >>"$GNUPGHOME/gpg.conf"
-  gpg-connect-agent --homedir "$GNUPGHOME" reloadagent /bye
-
-  echo "" | gpg --homedir "$GNUPGHOME" --quiet --passphrase "$GPG_PASSPHRASE" --batch --pinentry-mode loopback --sign >/dev/null
+  echo "" | gpg --quiet --passphrase "$GPG_PASSPHRASE" --batch --pinentry-mode loopback --sign >/dev/null
   echo "Git GPG passphrase set"
 fi
 
