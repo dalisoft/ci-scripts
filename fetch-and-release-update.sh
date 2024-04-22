@@ -49,7 +49,7 @@ else
   RELEASES=$(curl -s "https://api.github.com/repos/${repository}/releases")
 fi
 
-TAG=$(echo "${RELEASES}" | grep 'tag_name' | xargs -L1 | cut -d ':' -f2 | cut -d '/' -f2 | xargs -L1 | grep -E '^v?[0-9]' | head -1 | tr -d ',')
+TAG=$(echo "${RELEASES}" | grep 'tag_name' | xargs -L1 | cut -d ':' -f2 | cut -d '/' -f2 | cut -d '_' -f2 | xargs -L1 | grep -E '^v?[0-9]' | head -1 | tr -d ',')
 echo "Git tag was acqiured"
 
 if ! git rev-parse "refs/tags/${TAG}" >/dev/null 2>&1; then
