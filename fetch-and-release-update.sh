@@ -33,9 +33,16 @@ if [ -z "${GPG_NO_SIGN-}" ] && [ -n "${GPG_PASSPHRASE-}" ]; then
 fi
 
 RELEASES=""
-if [ -n "${GH_TOKEN-}" ]; then
+if [ -n "${GH_TOKEN-}" ] || [ -n "${GITHUB_TOKEN-}" ]; then
+  API_TOKEN=""
+  if [ -n "${GH_TOKEN-}" ]; then
+    API_TOKEN="${GH_TOKEN}"
+  elif [ -n "${GITHUB_TOKEN-}" ]; then
+    API_TOKEN="${GITHUB_TOKEN}"
+  fi
+
   RELEASES=$(curl -s -H "Accept: application/vnd.github+json" \
-    -H "Authorization: Bearer ${GH_TOKEN}" \
+    -H "Authorization: Bearer ${API_TOKEN}" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
     "https://api.github.com/repos/${repository}/releases")
 else
