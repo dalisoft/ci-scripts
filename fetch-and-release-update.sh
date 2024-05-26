@@ -53,7 +53,10 @@ TAG=$(echo "${RELEASES}" | grep 'tag_name' | xargs -L1 | cut -d ':' -f2 | cut -d
 echo "Git tag was acqiured"
 
 if ! git rev-parse "refs/tags/${TAG}" >/dev/null 2>&1; then
-  npm version "$(echo "${TAG}" | tr -d 'v')" -m "Upgrade ${project} to ${TAG}" --sign-git-tag
+  npm version "$(echo "${TAG}" | tr -d 'v')" --no-git-tag-version
+  git add package.json
+  git commit --sign --message "Upgrade ${project} to ${TAG}"
+  git tag -s "${TAG}" --message "Upgrade ${project} to ${TAG}"
   echo "Git tag and npm updated"
 
   git checkout -b remote-upgrade
