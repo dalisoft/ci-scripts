@@ -1,6 +1,9 @@
 #!/bin/sh
 set -eu
 
+# Global variables
+IS_PRE_RELEASE='false'
+
 if [ -z "${repository-}" ]; then
   echo "Repository not defined, please set it first"
   exit 1
@@ -9,6 +12,10 @@ fi
 if [ -z "${project-}" ]; then
   echo "Project name not defined, please set it first"
   exit 1
+fi
+
+if [ -n "${PRE_RELEASE-}" ]; then
+  IS_PRE_RELEASE='true'
 fi
 
 if [ -n "${GIT_USERNAME-}" ] && [ -n "${GIT_EMAIL-}" ]; then
@@ -49,7 +56,13 @@ else
   RELEASES=$(curl -s "https://api.github.com/repos/${repository}/releases")
 fi
 
-TAG=$(echo "${RELEASES}" | grep 'tag_name' | xargs -L1 | cut -d ':' -f2 | cut -d '/' -f2 | cut -d '_' -f2 | xargs -L1 | grep -E '^v?[0-9]' | head -1 | tr -d ',')
+FILTERED_RELEASES=$(echo "${RELEASES}" | grep "prerelease\"\: ${IS_PRE_RELEASE}" -B 4 | grep 'tag_name' | xargs -L1 | cut -d ':' -f2)
+
+if [ -n "${TAG_PREFIX-}" ]; then
+  FILTERED_RELEASES=$(echo "${FILTERED_RELEASES}" | grep "${TAG_PREFIX-}")
+fi
+
+TAG=$(echo "${FILTERED_RELEASES}" | xargs -L1 | cut -d '/' -f2 | cut -d '_' -f2 | xargs -L1 | grep -E '^v?[0-9]' | head -1 | tr -d ',')
 echo "Git tag was acqiured"
 
 if ! git rev-parse "refs/tags/${TAG}" >/dev/null 2>&1; then
